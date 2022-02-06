@@ -1,5 +1,4 @@
-#ifndef _APRILS_CREATURES_MAGIC_BROKER
-#define _APRILS_CREATURES_MAGIC_BROKER
+#pragma once
 
 #if !defined(ESP32)
 #error This code is intended to run only on the ESP32 board
@@ -32,5 +31,3 @@ protected:
     uint16_t DEFAULT_MQTT_PORT = 1883;
     String BROKER_ROLE = MAGIC_BROKER_ROLE;
 };
-
-#endif

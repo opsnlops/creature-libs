@@ -1,6 +1,5 @@
 
-#ifndef _APRILS_CREATURES_WAS_HERE
-#define _APRILS_CREATURES_WAS_HERE
+#pragma once
 
 #include <stdio.h>
 #include <stdint.h>
@@ -40,5 +39,3 @@ void close_file(FILE *file);
 void write_movement_frame(FILE *file, uint8_t *positions, int number_of_servos);
 void write_pause_frame(FILE *file, uint16_t millseconds_to_pause);
 void write_led_control_frame(FILE *file);
-
-#endif

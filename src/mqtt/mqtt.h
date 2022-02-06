@@ -1,6 +1,5 @@
 
-#ifndef _APRILS_CREATURES_MQTT
-#define _APRILS_CREATURES_MQTT
+#pragma once
 
 extern "C"
 {
@@ -40,4 +39,3 @@ public:
     static void onWifiDisconnect();
 };
 
-#endif

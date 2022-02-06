@@ -5,7 +5,6 @@
 
 #include "mqtt.h"
 
-using namespace std;
 
 void MQTT::configure(IPAddress _mqtt_broker_address, uint16_t _mqtt_broker_port)
 {
