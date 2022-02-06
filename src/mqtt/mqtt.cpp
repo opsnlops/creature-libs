@@ -3,7 +3,6 @@
 #include <AsyncMqttClient.h>
 #include <WiFi.h>
 
-#include "connection.h"
 #include "mqtt.h"
 
 using namespace std;

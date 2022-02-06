@@ -13,7 +13,7 @@ extern "C"
 }
 
 #include "connection.h"
-#include <secrets.h>
+#include "secrets.h"
 
 WiFiClass NetworkConnection::WiFi;
 TimerHandle_t NetworkConnection::wifiReconnectTimer;
