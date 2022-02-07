@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <Arduino.h>
+
 extern "C"
 {
 #include "freertos/FreeRTOS.h"

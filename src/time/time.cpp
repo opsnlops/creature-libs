@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
-#include <string>
 
 #include "esp_log.h"
 #include "esp_sntp.h"
@@ -22,8 +21,8 @@ namespace creatures
     void Time::init()
     {
 
-        string TIME_SERVER = string(DEFAULT_TIME_SERVER);
-        string TIME_ZONE = string(DEFAULT_TIME_ZONE);
+        String TIME_SERVER = DEFAULT_TIME_SERVER;
+        String TIME_ZONE = DEFAULT_TIME_ZONE;
 
         ESP_LOGD("in Time::init()");
         sntp_setoperatingmode(SNTP_OPMODE_POLL);

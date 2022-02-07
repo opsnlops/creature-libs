@@ -1,4 +1,5 @@
 
+#include <Arduino.h>
 
 #include <AsyncMqttClient.h>
 #include <WiFi.h>

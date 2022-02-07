@@ -5,6 +5,7 @@
 #error This code is intended to run only on the ESP32 board
 #endif
 
+#include <Arduino.h>
 #include <WiFi.h>
 extern "C"
 {

@@ -7,7 +7,7 @@
 
 */
 
-#include <string>
+#include <Arduino.h>
 #include <ESPmDNS.h>
 
 #include "esp_log.h"
@@ -23,13 +23,13 @@ namespace creatures
     {
 
     public:
-        CreatureMDNS(std::string creatureName);
+        CreatureMDNS(String creatureName);
         void registerService(uint16_t port);
         void addStandardTags();
-        void addServiceText(std::string key, std::string value);
+        void addServiceText(String key, String value);
 
     protected:
-        std::string creatureName;
+        String creatureName;
     };
 
 }
