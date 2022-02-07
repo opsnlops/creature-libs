@@ -1,6 +1,8 @@
 
 #include <Arduino.h>
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
 #include <string>
@@ -12,10 +14,10 @@
 
 using namespace std;
 
-static const char *TAG = "Time";
-
 namespace creatures
 {
+
+    static const char *TAG = "Time";
 
     void Time::init()
     {
@@ -27,6 +29,10 @@ namespace creatures
         sntp_setoperatingmode(SNTP_OPMODE_POLL);
         sntp_setservername(0, const_cast<char *>(TIME_SERVER.c_str()));
         sntp_init();
+
+        // Set the time zone to our local time
+        setenv("TZ", DEFAULT_TIME_ZONE, 1);
+        tzset();
     }
 
     void Time::logConfiguredTimeServers()
@@ -51,9 +57,6 @@ namespace creatures
 
     void Time::obtainTime(void)
     {
-        //ESP_ERROR_CHECK(nvs_flash_init());
-        //ESP_ERROR_CHECK(esp_event_loop_create_default());
-
         // wait for time to be set
         time_t now = 0;
         struct tm timeinfo = {0};
@@ -69,9 +72,6 @@ namespace creatures
 
         char strftime_buf[64];
 
-        // Set timezone to Eastern Standard Time and print local time
-        setenv("TZ", DEFAULT_TIME_ZONE, 1);
-        tzset();
         localtime_r(&now, &timeinfo);
         strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
         ESP_LOGI(TAG, "The current date/time on Whidbey Island is: %s", strftime_buf);
