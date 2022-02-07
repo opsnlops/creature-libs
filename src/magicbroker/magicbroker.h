@@ -8,26 +8,33 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 
+#include "esp_log.h"
+
 #define MAGIC_BROKER_ROLE "magic"
 
-class MagicBroker
+namespace creatures
 {
-public:
-    MagicBroker();
-    MagicBroker(IPAddress _ip, uint16_t _port);
 
-    int operator==(MagicBroker _that);
+    class MagicBroker
+    {
+    public:
+        MagicBroker();
+        MagicBroker(IPAddress _ip, uint16_t _port);
 
-    IPAddress ipAddress;
-    uint16_t port;
+        int operator==(MagicBroker _that);
 
-    boolean find();
-    boolean isValid();
-    String getMagicRole();
+        IPAddress ipAddress;
+        uint16_t port;
 
-protected:
-    boolean valid;
-    IPAddress DEFAULT_IP_ADDRESS = IPAddress(0, 0, 0, 0);
-    uint16_t DEFAULT_MQTT_PORT = 1883;
-    String BROKER_ROLE = MAGIC_BROKER_ROLE;
-};
+        boolean find();
+        boolean isValid();
+        String getMagicRole();
+
+    protected:
+        boolean valid;
+        IPAddress DEFAULT_IP_ADDRESS = IPAddress(0, 0, 0, 0);
+        uint16_t DEFAULT_MQTT_PORT = 1883;
+        String BROKER_ROLE = MAGIC_BROKER_ROLE;
+    };
+
+}
