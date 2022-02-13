@@ -20,6 +20,7 @@ namespace creatures
     {
 
     public:
+        MQTT(String ourName);
         static void subscribe(String topic, uint8_t qos);
         static void connect(IPAddress mqtt_broker_address, uint16_t mqtt_broker_port);
 
@@ -35,6 +36,7 @@ namespace creatures
 
     protected:
         static void defaultOnMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
+        static String ourName;
     };
 
 }

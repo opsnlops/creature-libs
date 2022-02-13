@@ -13,6 +13,18 @@ namespace creatures
     static AsyncMqttClient mqttClient;
     static IPAddress mqtt_broker_address;
     static uint16_t mqtt_broker_port;
+    static String mqtt_base_name;
+    static String mqtt_base_topic;
+
+    MQTT::MQTT(String ourName)
+    {
+        ourName.toLowerCase();
+        mqtt_base_name = ourName;
+        ESP_LOGV(TAG, "Set mqtt_base_name to %s", mqtt_base_name);
+
+        mqtt_base_topic = String("creatures/") + mqtt_base_name;
+        ESP_LOGV(TAG, "Set mqtt_base_topic to %s", mqtt_base_topic.c_str());
+    }
 
     void MQTT::connect(IPAddress _mqtt_broker_address, uint16_t _mqtt_broker_port)
     {
@@ -36,8 +48,11 @@ namespace creatures
 
     void MQTT::subscribe(String topic, uint8_t qos)
     {
-        ESP_LOGI(TAG, "Subcribing to %s (%d)", topic, qos);
-        mqttClient.subscribe(topic.c_str(), qos);
+        String fullTopic = mqtt_base_topic + String("/") + topic;
+        ESP_LOGI(TAG, "Mapping %s to %s", topic, fullTopic.c_str());
+
+        ESP_LOGI(TAG, "Subcribing to %s (%d)", fullTopic.c_str(), qos);
+        mqttClient.subscribe(fullTopic.c_str(), qos);
     }
 
     void MQTT::onConnect(bool sessionPresent)
