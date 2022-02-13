@@ -25,13 +25,8 @@ namespace creatures
         String TIME_ZONE = DEFAULT_TIME_ZONE;
 
         ESP_LOGD("in Time::init()");
-        sntp_setoperatingmode(SNTP_OPMODE_POLL);
-        sntp_setservername(0, const_cast<char *>(TIME_SERVER.c_str()));
-        sntp_init();
+        configTzTime(DEFAULT_TIME_ZONE, const_cast<char *>(TIME_SERVER.c_str()) );
 
-        // Set the time zone to our local time
-        setenv("TZ", DEFAULT_TIME_ZONE, 1);
-        tzset();
     }
 
     void Time::logConfiguredTimeServers()
@@ -57,8 +52,6 @@ namespace creatures
     void Time::obtainTime(void)
     {
         // wait for time to be set
-        time_t now = 0;
-        struct tm timeinfo = {0};
         int retry = 0;
         const int retry_count = 15;
         while (sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET && ++retry < retry_count)
@@ -66,14 +59,9 @@ namespace creatures
             ESP_LOGI(TAG, "Waiting for system time to be set... (%d/%d)", retry, retry_count);
             vTaskDelay(2000 / portTICK_PERIOD_MS);
         }
-        time(&now);
-        localtime_r(&now, &timeinfo);
-
-        char strftime_buf[64];
-
-        localtime_r(&now, &timeinfo);
-        strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-        ESP_LOGI(TAG, "The current date/time on Whidbey Island is: %s", strftime_buf);
+        
+        String currentTime = getCurrentTime();
+        ESP_LOGI(TAG, "The current date/time on Whidbey Island is: %s", currentTime);
     }
 
     /**
