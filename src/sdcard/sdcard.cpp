@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+/*
+
 #include <SPI.h>
 #include <SD.h>
 
@@ -23,3 +25,5 @@ void someFunction()
     }
     ESP_LOGD(TAG, "initialization done.");
 }
+
+*/

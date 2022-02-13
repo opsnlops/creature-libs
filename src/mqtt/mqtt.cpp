@@ -168,7 +168,7 @@ namespace creatures
         {
             ESP_LOGD(TAG, "publishing heartbeat");
 
-            StaticJsonDocument<64> message;
+            StaticJsonDocument<100> message;
             message["name"] = mqtt_base_name;
             message["time"] = Time::getCurrentTime();
 
