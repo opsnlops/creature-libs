@@ -35,11 +35,11 @@ namespace creatures
     {
         ESP_LOGV(TAG, "enter NetworkConnection::wifi_init()");
         WiFi.mode(WIFI_STA);
-        WiFi.onEvent(onWifiReady, SYSTEM_EVENT_WIFI_READY);
-        WiFi.onEvent(onStart, SYSTEM_EVENT_STA_START);
-        WiFi.onEvent(onConnected, SYSTEM_EVENT_STA_CONNECTED);
-        WiFi.onEvent(onGotIP, SYSTEM_EVENT_STA_GOT_IP);
-        WiFi.onEvent(onDisconnected, SYSTEM_EVENT_STA_DISCONNECTED);
+        WiFi.onEvent(onWifiReady, ARDUINO_EVENT_WIFI_READY);
+        WiFi.onEvent(onStart, ARDUINO_EVENT_WIFI_STA_START);
+        WiFi.onEvent(onConnected, ARDUINO_EVENT_WIFI_STA_CONNECTED);
+        WiFi.onEvent(onGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+        WiFi.onEvent(onDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
         wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToWiFi));
 
         ESP_LOGV(TAG, "leave NetworkConnection::wifi_init()");
@@ -54,7 +54,7 @@ namespace creatures
         WiFi.begin(WIFI_NETWORK, WIFI_PASSWORD);
         while (WiFi.status() != WL_CONNECTED)
         {
-            delay(500);
+            vTaskDelay(pdMS_TO_TICKS(500));
             ESP_LOGD(TAG, " (not yet - %d)", attempt);
 
             // Only wait so long
