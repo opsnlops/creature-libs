@@ -75,4 +75,31 @@ namespace creatures
         strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
         ESP_LOGI(TAG, "The current date/time on Whidbey Island is: %s", strftime_buf);
     }
+
+    /**
+     * @brief Returns the current time using strftime()
+     *
+     * @param format The time format to use. Defaults to "%c"
+     * @return String with the current time
+     */
+    String Time::getCurrentTime(const char *format)
+    {
+        ESP_LOGD(TAG, "Getting the current time");
+        time_t now = 0;
+        struct tm timeinfo = {0};
+
+        // Go fetch the current time from the RTC
+        time(&now);
+
+        char strftime_buf[64];
+        localtime_r(&now, &timeinfo);
+        strftime(strftime_buf, sizeof(strftime_buf), format, &timeinfo);
+
+        return String(strftime_buf);
+    }
+
+    String Time::getCurrentTime()
+    {
+        return getCurrentTime("%c");
+    }
 }

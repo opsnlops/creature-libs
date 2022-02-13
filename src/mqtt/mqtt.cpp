@@ -1,10 +1,13 @@
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 #include <AsyncMqttClient.h>
 #include <WiFi.h>
 
 #include "mqtt.h"
+
+#include "time/time.h"
 
 namespace creatures
 {
@@ -15,6 +18,8 @@ namespace creatures
     static uint16_t mqtt_broker_port;
     static String mqtt_base_name;
     static String mqtt_base_topic;
+
+    TaskHandle_t creatureOTATaskHandle;
 
     MQTT::MQTT(String ourName)
     {
@@ -51,8 +56,44 @@ namespace creatures
         String fullTopic = mqtt_base_topic + String("/") + topic;
         ESP_LOGI(TAG, "Mapping %s to %s", topic, fullTopic.c_str());
 
-        ESP_LOGI(TAG, "Subcribing to %s (%d)", fullTopic.c_str(), qos);
+        ESP_LOGI(TAG, "Subscribing to %s (%d)", fullTopic.c_str(), qos);
         mqttClient.subscribe(fullTopic.c_str(), qos);
+    }
+
+    /**
+     * @brief Publish a message to a topic owned by the creature
+     *
+     * @param topic topic to publish to. Will be prepended with "creatures/$name"
+     * @param message The message to send
+     * @param qos QOS of message
+     * @param retain Retain this message in the broker?
+     * @return uint16_t Whatever the client return code was
+     */
+    uint16_t MQTT::publish(String topic, String message, uint8_t qos, boolean retain)
+    {
+
+        /*
+        Client signature:
+        uint16_t publish(const char* topic, uint8_t qos, bool retain, const char* payload = nullptr,
+                         size_t length = 0, bool dup = false, uint16_t message_id = 0);
+        */
+
+        String fullTopic = mqtt_base_topic + String("/") + topic;
+        ESP_LOGD(TAG, "Mapping %s to %s", topic, fullTopic.c_str());
+
+        uint16_t returnCode = MQTT::publishRaw(fullTopic, message, qos, retain);
+        ESP_LOGI(TAG, "Published message to %s (%d)", fullTopic.c_str(), qos);
+
+        return returnCode;
+    }
+
+    uint16_t MQTT::publishRaw(String topic, String message, uint8_t qos, boolean retain)
+    {
+
+        uint16_t returnCode = mqttClient.publish(topic.c_str(), qos, retain, message.c_str(), message.length());
+        ESP_LOGV(TAG, "Published message to %s (%d)", topic.c_str(), qos);
+
+        return returnCode;
     }
 
     void MQTT::onConnect(bool sessionPresent)
@@ -75,7 +116,7 @@ namespace creatures
     void MQTT::onMessage(AsyncMqttClientInternals::OnMessageUserCallback callback)
     {
         mqttClient.onMessage(callback);
-    } 
+    }
 
     // Provide a logging setup if there's no onMessage()
     void MQTT::defaultOnMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
@@ -103,6 +144,43 @@ namespace creatures
 
     void MQTT::onWifiDisconnect()
     {
+    }
+
+    void MQTT::startHeartbeat()
+    {
+
+        xTaskCreate(creatureHeartBeatTask,
+                    "creatureHeartBeatTask",
+                    4096,
+                    NULL,
+                    1,
+                    &creatureOTATaskHandle);
+    }
+
+    /**
+     * @brief Task to send a pulse to the heartbeat
+     *
+     */
+    portTASK_FUNCTION(creatureHeartBeatTask, pvParameters)
+    {
+        DynamicJsonDocument message(200);
+        message["name"] = mqtt_base_name;
+
+        char buffer[200];
+
+        for (;;)
+        {
+            ESP_LOGD(TAG, "publishing heartbeat");
+
+            message["time"] = Time::getCurrentTime();
+
+            String json;
+            serializeJson(message, json);
+
+            MQTT::publishRaw(HEARTBEAT_TOPIC, json, 0, false);
+
+            vTaskDelay(pdMS_TO_TICKS(15000));
+        }
     }
 
 }

@@ -20,7 +20,6 @@ namespace creatures
     {
 
     public:
-
         static void init();
 
         static void logTime();
@@ -28,6 +27,9 @@ namespace creatures
         static void logConfiguredTimeServers();
 
         static void obtainTime();
+
+        static String getCurrentTime();
+        static String getCurrentTime(const char *);
     };
 
 }
