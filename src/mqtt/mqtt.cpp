@@ -19,7 +19,7 @@ namespace creatures
     static String mqtt_base_name;
     static String mqtt_base_topic;
 
-    TaskHandle_t creatureOTATaskHandle;
+    TaskHandle_t creatureHeartBeatTaskHandler;
 
     MQTT::MQTT(String ourName)
     {
@@ -91,7 +91,7 @@ namespace creatures
     {
 
         uint16_t returnCode = mqttClient.publish(topic.c_str(), qos, retain, message.c_str(), message.length());
-        ESP_LOGV(TAG, "Published message to %s (%d)", topic.c_str(), qos);
+        ESP_LOGD(TAG, "Published message to %s (%d)", topic.c_str(), qos);
 
         return returnCode;
     }
@@ -154,7 +154,7 @@ namespace creatures
                     4096,
                     NULL,
                     1,
-                    &creatureOTATaskHandle);
+                    &creatureHeartBeatTaskHandler);
     }
 
     /**
@@ -163,15 +163,13 @@ namespace creatures
      */
     portTASK_FUNCTION(creatureHeartBeatTask, pvParameters)
     {
-        DynamicJsonDocument message(200);
-        message["name"] = mqtt_base_name;
-
-        char buffer[200];
 
         for (;;)
         {
             ESP_LOGD(TAG, "publishing heartbeat");
 
+            StaticJsonDocument<64> message;
+            message["name"] = mqtt_base_name;
             message["time"] = Time::getCurrentTime();
 
             String json;
