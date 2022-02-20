@@ -168,9 +168,12 @@ namespace creatures
         {
             ESP_LOGD(TAG, "publishing heartbeat");
 
-            StaticJsonDocument<100> message;
+            StaticJsonDocument<130> message;
             message["name"] = mqtt_base_name;
             message["time"] = Time::getCurrentTime();
+
+            // Show the uptime in seconds
+            message["uptime"] = esp_timer_get_time() / 1000000;
 
             String json;
             serializeJson(message, json);
