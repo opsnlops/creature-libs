@@ -66,6 +66,26 @@ namespace creatures
         ESP_LOGI(TAG, "connected to wifi");
     }
 
+    /**
+     * @brief Disconnects from the WiFi network
+     * 
+     */
+    void NetworkConnection::disconnectFromWiFi()
+    {
+        ESP_LOGD(TAG, "Disconnecting from Wifi network %s", WIFI_NETWORK);
+
+        if (NetworkConnection::isConnected())
+        {
+            WiFi.disconnect();
+            ESP_LOGI(TAG, "Disconnected from Wifi network %s", WIFI_NETWORK);
+        }
+    }
+
+    boolean NetworkConnection::isConnected()
+    {
+        return (WiFi.status() == WL_CONNECTED);
+    }
+
     //
     // Event Handlers
     //

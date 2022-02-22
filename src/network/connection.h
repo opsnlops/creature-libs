@@ -24,6 +24,9 @@ namespace creatures
 
         void wifi_init();
 
+        static boolean isConnected();
+        static void disconnectFromWiFi();
+
         static void signal_sos();
 
         // Event handlers

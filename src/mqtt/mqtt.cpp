@@ -106,10 +106,10 @@ namespace creatures
     {
         ESP_LOGI(TAG, "Disconnected from MQTT.");
 
-        if (WiFi.isConnected())
-        {
-            xTimerStart(mqttReconnectTimer, 0);
-        }
+        //if (WiFi.isConnected())
+        //{
+        //    xTimerStart(mqttReconnectTimer, 0);
+        //}
     }
 
     // Allow others to set their own callback if they want
