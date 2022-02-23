@@ -10,10 +10,11 @@
 namespace creatures
 {
 
-    CreatureMDNS::CreatureMDNS(String creatureName)
+    CreatureMDNS::CreatureMDNS(String creatureName, String powerType)
     {
         // Save this for later!
         this->creatureName = creatureName;
+        this->powerType = powerType;
 
         ESP_LOGD(TAG, "Attempting to register %s in mDNS", creatureName);
         if (!MDNS.begin(creatureName.c_str()))
@@ -36,6 +37,7 @@ namespace creatures
         addServiceText("variant", ARDUINO_VARIANT);
         addServiceText("name", creatureName);
         addServiceText("arduino", String(ARDUINO));
+        addServiceText("power", powerType);
     }
 
     void CreatureMDNS::addServiceText(String key, String value)

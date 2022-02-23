@@ -23,13 +23,14 @@ namespace creatures
     {
 
     public:
-        CreatureMDNS(String creatureName);
+        CreatureMDNS(String creatureName, String powerType);
         void registerService(uint16_t port);
         void addStandardTags();
         void addServiceText(String key, String value);
 
     protected:
         String creatureName;
+        String powerType;
     };
 
 }
