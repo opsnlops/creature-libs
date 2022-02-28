@@ -9,6 +9,8 @@
 
 #include "time/time.h"
 
+static const char *TAG = "mqtt";
+
 namespace creatures
 {
 

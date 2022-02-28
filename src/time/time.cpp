@@ -13,6 +13,8 @@
 
 using namespace std;
 
+static const char *TAG = "time";
+
 namespace creatures
 {
 
@@ -22,7 +24,7 @@ namespace creatures
 
     void Time::init()
     {
-        ESP_LOGD("in Time::init()");
+        ESP_LOGD(TAG, "in Time::init()");
         sntp_setoperatingmode(SNTP_OPMODE_POLL);
         sntp_setserver(0, &creatureTimeServer);
         sntp_set_sync_interval(900000);             // Sync every 15 minutes 

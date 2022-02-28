@@ -7,6 +7,8 @@
 
 #include "creature-mdns.h"
 
+static const char *TAG = "mdns";
+
 namespace creatures
 {
 
