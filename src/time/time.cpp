@@ -79,7 +79,7 @@ namespace creatures
      */
     String Time::getCurrentTime(const char *format)
     {
-        ESP_LOGD(TAG, "Getting the current time");
+        ESP_LOGV(TAG, "Getting the current time");
         struct tm timeinfo;
 
         // Go fetch the current time from the RTC
