@@ -11,6 +11,7 @@
 #include <ESPmDNS.h>
 
 #include "esp_log.h"
+#include "logging/logging.h"
 
 namespace creatures
 {
@@ -21,6 +22,7 @@ namespace creatures
      */
     class CreatureMDNS
     {
+        static Logger l;
 
     public:
         CreatureMDNS(String creatureName, String powerType);

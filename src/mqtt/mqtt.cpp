@@ -8,12 +8,14 @@
 #include "mqtt.h"
 
 #include "time/time.h"
+#include "logging/logging.h"
 
 static const char *TAG = "mqtt";
 
 namespace creatures
 {
 
+    static Logger l;
     static TimerHandle_t mqttReconnectTimer;
     static AsyncMqttClient mqttClient;
     static IPAddress mqtt_broker_address;
@@ -38,7 +40,7 @@ namespace creatures
         mqtt_broker_address = _mqtt_broker_address;
         mqtt_broker_port = _mqtt_broker_port;
 
-        ESP_LOGI(TAG, "The IP of the broker is %s, port: %d", mqtt_broker_address.toString(), mqtt_broker_port);
+        l.info("The IP of the broker is %s, port: %d", mqtt_broker_address.toString(), mqtt_broker_port);
 
         mqttClient.setServer(mqtt_broker_address, mqtt_broker_port);
         mqttClient.onConnect(onConnect);
@@ -48,17 +50,17 @@ namespace creatures
         mqttClient.onPublish(onPublish);
         mqttClient.onMessage(defaultOnMessage);
 
-        ESP_LOGI(TAG, "Connecting to MQTT...");
+        l.info("Connecting to MQTT...");
         mqttClient.connect();
-        ESP_LOGI(TAG, "connected!");
+        l.info("connected!");
     }
 
     void MQTT::subscribe(String topic, uint8_t qos)
     {
         String fullTopic = mqtt_base_topic + String("/") + topic;
-        ESP_LOGI(TAG, "Mapping %s to %s", topic, fullTopic.c_str());
+        l.info("Mapping %s to %s", topic, fullTopic.c_str());
 
-        ESP_LOGI(TAG, "Subscribing to %s (%d)", fullTopic.c_str(), qos);
+        l.info("Subscribing to %s (%d)", fullTopic.c_str(), qos);
         mqttClient.subscribe(fullTopic.c_str(), qos);
     }
 
@@ -81,10 +83,10 @@ namespace creatures
         */
 
         String fullTopic = mqtt_base_topic + String("/") + topic;
-        ESP_LOGD(TAG, "Mapping %s to %s", topic, fullTopic.c_str());
+        l.debug("Mapping %s to %s", topic, fullTopic.c_str());
 
         uint16_t returnCode = MQTT::publishRaw(fullTopic, message, qos, retain);
-        ESP_LOGI(TAG, "Published message to %s (%d)", fullTopic.c_str(), qos);
+        l.info("Published message to %s (%d)", fullTopic.c_str(), qos);
 
         return returnCode;
     }
@@ -93,25 +95,25 @@ namespace creatures
     {
 
         uint16_t returnCode = mqttClient.publish(topic.c_str(), qos, retain, message.c_str(), message.length());
-        ESP_LOGD(TAG, "Published message to %s (%d)", topic.c_str(), qos);
+        l.debug("Published message to %s (%d)", topic.c_str(), qos);
 
         return returnCode;
     }
 
     void MQTT::onConnect(bool sessionPresent)
     {
-        ESP_LOGI(TAG, "Connected to MQTT.");
+        l.info("Connected to MQTT.");
         ESP_LOGV(TAG, "Session present: %b", sessionPresent);
     }
 
     void MQTT::onDisconnect(AsyncMqttClientDisconnectReason reason)
     {
-        ESP_LOGI(TAG, "Disconnected from MQTT.");
+        l.info("Disconnected from MQTT.");
 
-        //if (WiFi.isConnected())
+        // if (WiFi.isConnected())
         //{
-        //    xTimerStart(mqttReconnectTimer, 0);
-        //}
+        //     xTimerStart(mqttReconnectTimer, 0);
+        // }
     }
 
     // Allow others to set their own callback if they want
@@ -123,24 +125,24 @@ namespace creatures
     // Provide a logging setup if there's no onMessage()
     void MQTT::defaultOnMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
     {
-        ESP_LOGD(TAG, "MQTT message received: topic: %s", topic);
+        l.debug("MQTT message received: topic: %s", topic);
     }
 
     void MQTT::onSubscribe(uint16_t packetId, uint8_t qos)
     {
-        ESP_LOGD(TAG, "Subscribe acknowledged.");
+        l.debug("Subscribe acknowledged.");
         ESP_LOGV(TAG, "  packetId: %d, qos: %d", packetId, qos);
     }
 
     void MQTT::onUnsubscribe(uint16_t packetId)
     {
-        ESP_LOGI(TAG, "Unsubscribe acknowledged.");
+        l.info("Unsubscribe acknowledged.");
         ESP_LOGV(TAG, "  packetId: %d", packetId);
     }
 
     void MQTT::onPublish(uint16_t packetId)
     {
-        ESP_LOGI(TAG, "Publish acknowledged.");
+        l.info("Publish acknowledged.");
         ESP_LOGV(TAG, " packetId: %d", packetId);
     }
 
@@ -168,7 +170,7 @@ namespace creatures
 
         for (;;)
         {
-            ESP_LOGD(TAG, "publishing heartbeat");
+            l.debug("publishing heartbeat");
 
             StaticJsonDocument<130> message;
             message["name"] = mqtt_base_name;

@@ -17,12 +17,14 @@ extern "C"
 
 #include "connection.h"
 #include "secrets.h"
+#include "logging/logging.h"
 
 namespace creatures
 {
 
     static const char *TAG = "network";
 
+    static Logger l;
     WiFiClass NetworkConnection::WiFi;
     TimerHandle_t NetworkConnection::wifiReconnectTimer;
 
@@ -47,7 +49,7 @@ namespace creatures
 
     void NetworkConnection::connectToWiFi()
     {
-        ESP_LOGI(TAG, "Connecting to WiFi network: %s", WIFI_NETWORK);
+        l.info("Connecting to WiFi network: %s", WIFI_NETWORK);
 
         int attempt = 0;
 
@@ -55,7 +57,7 @@ namespace creatures
         while (WiFi.status() != WL_CONNECTED)
         {
             vTaskDelay(pdMS_TO_TICKS(500));
-            ESP_LOGD(TAG, " (not yet - %d)", attempt);
+            l.debug(" (not yet - %d)", attempt);
 
             // Only wait so long
             if (attempt++ == 50)
@@ -63,21 +65,21 @@ namespace creatures
                 signal_sos();
             }
         }
-        ESP_LOGI(TAG, "connected to wifi");
+        l.info("connected to wifi");
     }
 
     /**
      * @brief Disconnects from the WiFi network
-     * 
+     *
      */
     void NetworkConnection::disconnectFromWiFi()
     {
-        ESP_LOGD(TAG, "Disconnecting from Wifi network %s", WIFI_NETWORK);
+        l.debug("Disconnecting from Wifi network %s", WIFI_NETWORK);
 
         if (NetworkConnection::isConnected())
         {
             WiFi.disconnect();
-            ESP_LOGI(TAG, "Disconnected from Wifi network %s", WIFI_NETWORK);
+            l.info("Disconnected from Wifi network %s", WIFI_NETWORK);
         }
     }
 
@@ -91,27 +93,27 @@ namespace creatures
     //
     void NetworkConnection::onWifiReady(WiFiEvent_t event, WiFiEventInfo_t info)
     {
-        ESP_LOGD(TAG, "Wifi Ready");
+        l.debug("Wifi Ready");
     }
 
     void NetworkConnection::onStart(WiFiEvent_t event, WiFiEventInfo_t info)
     {
-        ESP_LOGD(TAG, "WiFi started");
+        l.debug("WiFi started");
     }
 
     void NetworkConnection::onConnected(WiFiEvent_t event, WiFiEventInfo_t info)
     {
-        ESP_LOGI(TAG, "WiFi connected");
+        l.info("WiFi connected");
     }
 
     void NetworkConnection::onGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
     {
-        ESP_LOGI(TAG, "IP address: %s", WiFi.localIP().toString().c_str());
+        l.info("IP address: %s", WiFi.localIP().toString().c_str());
     }
 
     void NetworkConnection::onDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
     {
-        ESP_LOGE(TAG, "WiFi lost connection");
+        l.error("WiFi lost connection");
         xTimerStart(wifiReconnectTimer, 0);
     }
 

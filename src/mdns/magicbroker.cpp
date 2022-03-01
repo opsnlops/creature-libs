@@ -6,11 +6,13 @@
 #include "esp_log.h"
 
 #include "magicbroker.h"
+#include "logging/logging.h"
 
 static const char *TAG = "mdns";
 
 namespace creatures
 {
+    static Logger l;
 
     MagicBroker::MagicBroker()
     {
@@ -47,16 +49,16 @@ namespace creatures
         ESP_LOGV(TAG, "enter MagicBroker::find()");
         valid = false;
 
-        ESP_LOGI(TAG, "looking for the magic broker");
+        l.info("looking for the magic broker");
 
         int n = MDNS.queryService("mqtt", "tcp");
         if (n == 0)
         {
-            ESP_LOGE(TAG, "couldn't find the magic broker in mDNS");
+            l.error("couldn't find the magic broker in mDNS");
         }
         else
         {
-            ESP_LOGD(TAG, "%d services(s) found", n);
+            l.debug("%d services(s) found", n);
             for (int i = 0; i < n; ++i)
             {
                 String _hostname = MDNS.hostname(i).c_str();
@@ -65,18 +67,18 @@ namespace creatures
                 int _port = MDNS.port(i);
 
                 // Print details for each service found
-                ESP_LOGD(TAG, "  %d: %s (%s:%d) role: %s",
-                      (i + 1),
-                      _hostname,
-                      _ipAddress.toString().c_str(),
-                      _port,
-                      _role);
+                l.debug("  %d: %s (%s:%d) role: %s",
+                        (i + 1),
+                        _hostname,
+                        _ipAddress.toString().c_str(),
+                        _port,
+                        _role);
 
                 if (_role == MagicBroker::BROKER_ROLE)
                 {
                     this->ipAddress = _ipAddress;
                     this->port = _port;
-                    ESP_LOGI(TAG, "Found the magic broker! IP: %s, port: %d", ipAddress.toString().c_str(), port);
+                    l.info("Found the magic broker! IP: %s, port: %d", ipAddress.toString().c_str(), port);
 
                     valid = true;
                 }
@@ -85,7 +87,7 @@ namespace creatures
 
         if (!valid)
         {
-            ESP_LOGW(TAG, "unable to find the magic broker (role '%s')", BROKER_ROLE.c_str());
+            l.warning("unable to find the magic broker (role '%s')", BROKER_ROLE.c_str());
         }
 
         ESP_LOGV(TAG, "leave MagicBroker::find()");

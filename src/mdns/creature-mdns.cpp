@@ -6,11 +6,14 @@
 #include "esp_log.h"
 
 #include "creature-mdns.h"
+#include "logging/logging.h"
 
 static const char *TAG = "mdns";
 
 namespace creatures
 {
+
+    static Logger l;
 
     CreatureMDNS::CreatureMDNS(String creatureName, String powerType)
     {
@@ -18,23 +21,23 @@ namespace creatures
         this->creatureName = creatureName;
         this->powerType = powerType;
 
-        ESP_LOGD(TAG, "Attempting to register %s in mDNS", creatureName);
+        l.debug("Attempting to register %s in mDNS", creatureName);
         if (!MDNS.begin(creatureName.c_str()))
         {
-            ESP_LOGE(TAG, "Error setting up MDNS responder!");
+            l.error("Error setting up MDNS responder!");
         }
-        ESP_LOGI(TAG, "MDNS set up");
+        l.info("MDNS set up");
     }
 
     void CreatureMDNS::registerService(uint16_t port)
     {
-        ESP_LOGD(TAG, "Attempting to register port %d in mDNS", port);
+        l.debug("Attempting to register port %d in mDNS", port);
         MDNS.addService("creatures", "tcp", port);
     }
 
     void CreatureMDNS::addStandardTags()
     {
-        ESP_LOGD(TAG, "Adding standard mDNS services");
+        l.debug("Adding standard mDNS services");
         addServiceText("board", ARDUINO_BOARD);
         addServiceText("variant", ARDUINO_VARIANT);
         addServiceText("name", creatureName);
@@ -44,7 +47,7 @@ namespace creatures
 
     void CreatureMDNS::addServiceText(String key, String value)
     {
-        ESP_LOGD(TAG, "Adding mDNS text record: key %s, value %s", key.c_str(), value.c_str());
+        l.debug("Adding mDNS text record: key %s, value %s", key.c_str(), value.c_str());
         MDNS.addServiceTxt("creatures", "tcp", key, value);
     }
 
