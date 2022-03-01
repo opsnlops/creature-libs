@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "time.h"
 
 extern "C"
 {
@@ -18,7 +19,7 @@ namespace creatures
     {
         xTaskCreate(logQueueReaderTask,
                     "logQueueReaderTask",
-                    4096,
+                    8192,
                     NULL,
                     1,
                     &logQueueReaderTaskHandler);
@@ -29,13 +30,25 @@ namespace creatures
 
         for (;;)
         {
-            LogMessage *lm = NULL;
-            xQueueReceive(Logger::logMessageQueue, &lm, (TickType_t)10);
+            struct LogMessage lm;
+            if (xQueueReceive(Logger::logMessageQueue, &lm, (TickType_t)10) == pdPASS)
+            {
+                Serial.print("[");
+                Serial.print(millis());
+                Serial.print("]");
 
-            // For now just dump it to the console
-            Serial.println(lm->getMessage());
+                // For now just dump it to the console
+                if(lm.level == LOG_LEVEL_VERBOSE) Serial.print("[V] ");
+                if(lm.level == LOG_LEVEL_DEBUG) Serial.print("[D] ");
+                if(lm.level == LOG_LEVEL_INFO) Serial.print("[I] ");
+                if(lm.level == LOG_LEVEL_WARNING) Serial.print("[W] ");
+                if(lm.level == LOG_LEVEL_ERROR) Serial.print("[E] ");
+                if(lm.level == LOG_LEVEL_FATAL) Serial.print("[F] ");
 
-            delete lm;
+                Serial.println(lm.message);
+            }
+
+            vTaskDelay(TickType_t pdMS_TO_TICKS(100));
         }
     }
 
