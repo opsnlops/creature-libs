@@ -10,12 +10,10 @@
 #include "time/time.h"
 #include "logging/logging.h"
 
-static const char *TAG = "mqtt";
-
 namespace creatures
 {
-
     static Logger l;
+    static QueueHandle_t incomingMessageQueue;
     static TimerHandle_t mqttReconnectTimer;
     static AsyncMqttClient mqttClient;
     static IPAddress mqtt_broker_address;
@@ -29,18 +27,33 @@ namespace creatures
     {
         ourName.toLowerCase();
         mqtt_base_name = ourName;
-        l.verbose("Set mqtt_base_name to %s", mqtt_base_name);
+        l.verbose("set mqtt_base_name to %s", mqtt_base_name);
 
         mqtt_base_topic = String("creatures/") + mqtt_base_name;
-        l.verbose("Set mqtt_base_topic to %s", mqtt_base_topic.c_str());
+        l.verbose("set mqtt_base_topic to %s", mqtt_base_topic.c_str());
+
+        incomingMessageQueue = xQueueCreate(MQTT_QUEUE_LENGTH, sizeof(MqttMessage));
+        l.debug("incoming message queue made");
+    }
+
+    /**
+     * @brief Returns a pointer to the queue of `MqttMessage` structs with our incoming message
+     *
+     * @return QueueHandle_t* a pointer to the internal message queue
+     */
+    QueueHandle_t MQTT::getIncomingMessageQueue()
+    {
+        l.debug("returning the incomingMessageQueue");
+        return incomingMessageQueue;
     }
 
     void MQTT::connect(IPAddress _mqtt_broker_address, uint16_t _mqtt_broker_port)
     {
+
         mqtt_broker_address = _mqtt_broker_address;
         mqtt_broker_port = _mqtt_broker_port;
 
-        l.info("The IP of the broker is %s, port: %d", mqtt_broker_address.toString(), mqtt_broker_port);
+        l.debug("Setting up the MQTT client");
 
         mqttClient.setServer(mqtt_broker_address, mqtt_broker_port);
         mqttClient.onConnect(onConnect);
@@ -48,20 +61,77 @@ namespace creatures
         mqttClient.onSubscribe(onSubscribe);
         mqttClient.onUnsubscribe(onUnsubscribe);
         mqttClient.onPublish(onPublish);
-        mqttClient.onMessage(defaultOnMessage);
+        mqttClient.onMessage(onMessage);
 
-        l.info("Connecting to MQTT...");
+        l.info("Connecting to MQTT (%s:%d)...", mqtt_broker_address.toString(), mqtt_broker_port);
         mqttClient.connect();
-        l.info("connected!");
+
+        /*
+            Bit of a weird thing here. connect() will return before it's actually connected. (I guess that's
+            okay, it does say it's async!) Soooo if we return right away, any attempts to subscribe to topics
+            will fail.
+
+            So let's spin for a bit and wait for the client to know it's up and running.
+        */
+
+        l.debug("connect() returned, waiting for client to admit it");
+
+        // wait for the client to know it's connecting
+        int waitCount = 0;
+        while (!mqttClient.connected() || waitCount++ > 100)
+        {
+            l.debug("waiting...");
+            vTaskDelay(pdMS_TO_TICKS(50));
+        }
+
+        // Leave a log message if we can't connect
+        if (mqttClient.connected())
+        {
+            l.info("connected!");
+        }
+        else
+        {
+            l.error("Unable to connect to MQTT!");
+        }
     }
 
+    /**
+     * @brief Subscribed to a topic that's localized to this creature
+     *
+     * Whatever `topic` is passed in will have `mqtt_base_topic` added to it before
+     * it's passed to the MQTT client.
+     *
+     * It's ideal to limit MQTT subscriptions to things localized for each creature so
+     * I can replicate creatures easily. If there is a need to subscribe to a topic in
+     * the global namespace, see `subscribeGlobalNamespace()`.
+     *
+     * @param topic The topic to subscribe to
+     * @param qos QOS passed to MQTT
+     */
     void MQTT::subscribe(String topic, uint8_t qos)
     {
         String fullTopic = mqtt_base_topic + String("/") + topic;
         l.info("Mapping %s to %s", topic, fullTopic.c_str());
 
-        l.info("Subscribing to %s (%d)", fullTopic.c_str(), qos);
-        mqttClient.subscribe(fullTopic.c_str(), qos);
+        subscribeGlobalNamespace(fullTopic, qos);
+    }
+
+    /**
+     * @brief Subscribes to a topic in the global namespace
+     *
+     * The subscription will be placed with the exact `topic` that's passed in to
+     * this method.
+     *
+     * Use subscriptions to the global namespace with care, it's better to localize thing
+     * to each creature.
+     *
+     * @param topic The topic in the global namespace to subscribe to
+     * @param qos QOS passed to QMTT
+     */
+    void MQTT::subscribeGlobalNamespace(String topic, uint8_t qos)
+    {
+        l.info("Subscribing to %s (%d)", topic.c_str(), qos);
+        mqttClient.subscribe(topic.c_str(), qos);
     }
 
     /**
@@ -102,7 +172,7 @@ namespace creatures
 
     void MQTT::onConnect(bool sessionPresent)
     {
-        l.info("Connected to MQTT.");
+        l.debug("in onConnect()");
         l.verbose("Session present: %b", sessionPresent);
     }
 
@@ -116,16 +186,63 @@ namespace creatures
         // }
     }
 
-    // Allow others to set their own callback if they want
-    void MQTT::onMessage(AsyncMqttClientInternals::OnMessageUserCallback callback)
+    /**
+     * @brief Tosses a message from MQTT into the message queue
+     *
+     * @param topic
+     * @param payload
+     * @param properties
+     * @param len
+     * @param index
+     * @param total
+     */
+    void MQTT::onMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
     {
-        mqttClient.onMessage(callback);
-    }
+        // Blink the LED while working
+        digitalWrite(LED_BUILTIN, HIGH);
 
-    // Provide a logging setup if there's no onMessage()
-    void MQTT::defaultOnMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
-    {
+        l.info("in onMessage()");
         l.debug("MQTT message received: topic: %s", topic);
+
+        // Create some buffers and make sure we've got \0 on the end
+        char topicBuffer[MQTT_MAX_TOPIC_LENGTH + 1];
+        memset(topicBuffer, '\0', MQTT_MAX_TOPIC_LENGTH + 1);
+
+        char payloadBuffer[MQTT_MAX_PAYLOAD_LENGTH + 1];
+        memset(payloadBuffer, '\0', MQTT_MAX_PAYLOAD_LENGTH + 1);
+
+        // Make sure we're not going to over-run a buffer
+        int topicLength = strlen(topic);
+        if (topicLength > MQTT_MAX_TOPIC_LENGTH)
+        {
+            l.info("topic is %d length, truncating to %d", topicLength, MQTT_MAX_TOPIC_LENGTH);
+            topicLength = MQTT_MAX_TOPIC_LENGTH;
+        }
+        else
+        {
+            l.debug("topic length: %d", topicLength);
+        }
+
+        int payloadLength = len;
+        if(payloadLength > MQTT_MAX_PAYLOAD_LENGTH)
+        {
+            l.info("payload is %d length, truncating to %d", payloadLength, MQTT_MAX_PAYLOAD_LENGTH);
+            payloadLength = MQTT_MAX_PAYLOAD_LENGTH;
+        }
+        else
+        {
+            l.debug("payload length: %d", payloadLength);
+        }
+
+        struct MqttMessage message;
+        memcpy(message.topic, topic, topicLength + 1);
+        memcpy(message.payload, payload, payloadLength + 1);
+
+        // Bye message! have fun in the queue!
+        xQueueSendToBack(incomingMessageQueue, &message, (TickType_t)50);
+
+        l.debug("enqueued incoming message");
+        digitalWrite(LED_BUILTIN, LOW);
     }
 
     void MQTT::onSubscribe(uint16_t packetId, uint8_t qos)

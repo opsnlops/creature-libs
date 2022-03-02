@@ -8,6 +8,7 @@ extern "C"
 {
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
+#include "freertos/queue.h"
 }
 #include <AsyncMqttClient.h>
 
@@ -16,8 +17,25 @@ extern "C"
 
 #define HEARTBEAT_TOPIC "creatures/heartbeat"
 
+// Configure the message passing system
+#define MQTT_QUEUE_LENGTH 16
+#define MQTT_MAX_TOPIC_LENGTH 128
+#define MQTT_MAX_PAYLOAD_LENGTH 1024
+
 namespace creatures
 {
+    /**
+     * @brief A message received from MQTT
+     *
+     * This is a bunch of fixed-length arrays so they can go into a queue
+     * without a lot of headaches
+     *
+     */
+    struct MqttMessage
+    {
+        char topic[MQTT_MAX_TOPIC_LENGTH + 1];
+        char payload[MQTT_MAX_PAYLOAD_LENGTH + 1];
+    } __attribute__((packed));
 
     class MQTT
     {
@@ -25,10 +43,13 @@ namespace creatures
     public:
         MQTT(String ourName);
         static void subscribe(String topic, uint8_t qos);
+        static void subscribeGlobalNamespace(String topic, uint8_t qos);
         static uint16_t publish(String topic, String message, uint8_t qos, boolean retain);
         static void connect(IPAddress mqtt_broker_address, uint16_t mqtt_broker_port);
 
         static void startHeartbeat();
+
+        static QueueHandle_t getIncomingMessageQueue();
 
         // Handlers
         static void onConnect(bool sessionPresent);
@@ -36,14 +57,14 @@ namespace creatures
         static void onSubscribe(uint16_t packetId, uint8_t qos);
         static void onUnsubscribe(uint16_t packetId);
 
-        static void onMessage(AsyncMqttClientInternals::OnMessageUserCallback callback);
         static void onPublish(uint16_t packetId);
         static void onWifiDisconnect();
 
         static uint16_t publishRaw(String topic, String message, uint8_t qos, boolean retain);
 
+        static void onMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
+
     protected:
-        static void defaultOnMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
         static String ourName;
     };
 
