@@ -11,13 +11,15 @@ extern "C"
 #include "logging.h"
 
 #ifndef CREATURE_DEBUG
-    #error Please define CREATURE_DEBUG
+#error Please define CREATURE_DEBUG
 #endif
 
 namespace creatures
 {
 
     QueueHandle_t Logger::logMessageQueue;
+
+    static boolean queueMade = false;
 
     void Logger::init()
     {
@@ -27,6 +29,7 @@ namespace creatures
             ;
 
         logMessageQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LogMessage));
+        queueMade = true;
         start_log_reader();
     }
 
@@ -44,7 +47,8 @@ namespace creatures
         struct LogMessage lm = createMessageObject(LOG_LEVEL_VERBOSE, message, args);
         va_end(args);
 
-        xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+        if (queueMade)
+            xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
 #endif
     }
 
@@ -58,7 +62,8 @@ namespace creatures
         struct LogMessage lm = createMessageObject(LOG_LEVEL_DEBUG, message, args);
         va_end(args);
 
-        xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
+        if (queueMade)
+            xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
 #endif
     }
 
@@ -72,7 +77,8 @@ namespace creatures
         struct LogMessage lm = createMessageObject(LOG_LEVEL_INFO, message, args);
         va_end(args);
 
-        xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+        if (queueMade)
+            xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
 #endif
     }
 
@@ -86,7 +92,8 @@ namespace creatures
         struct LogMessage lm = createMessageObject(LOG_LEVEL_WARNING, message, args);
         va_end(args);
 
-        xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+        if (queueMade)
+            xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
 #endif
     }
 
@@ -100,7 +107,8 @@ namespace creatures
         struct LogMessage lm = createMessageObject(LOG_LEVEL_ERROR, message, args);
         va_end(args);
 
-        xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+        if (queueMade)
+            xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
 #endif
     }
 
@@ -113,7 +121,8 @@ namespace creatures
         struct LogMessage lm = createMessageObject(LOG_LEVEL_FATAL, message, args);
         va_end(args);
 
-        xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+        if (queueMade)
+            xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
     }
 
     LogMessage Logger::createMessageObject(u_int8_t level, const char *message, va_list args)
