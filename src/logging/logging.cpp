@@ -51,7 +51,7 @@ namespace creatures
         struct LogMessage lm = createMessageObject(LOG_LEVEL_DEBUG, message, args);
         va_end(args);
 
-        xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+        xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
     }
 
     void Logger::info(const char *message, ...)

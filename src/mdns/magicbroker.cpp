@@ -8,7 +8,6 @@
 #include "magicbroker.h"
 #include "logging/logging.h"
 
-static const char *TAG = "mdns";
 
 namespace creatures
 {

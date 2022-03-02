@@ -19,7 +19,7 @@ namespace creatures
     {
         xTaskCreate(logQueueReaderTask,
                     "logQueueReaderTask",
-                    8192,
+                    32768,
                     NULL,
                     1,
                     &logQueueReaderTaskHandler);
