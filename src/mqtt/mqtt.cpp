@@ -239,7 +239,7 @@ namespace creatures
         memcpy(message.payload, payload, payloadLength + 1);
 
         // Bye message! have fun in the queue!
-        xQueueSendToBack(incomingMessageQueue, &message, (TickType_t)50);
+        xQueueSendToBackFromISR(incomingMessageQueue, &message, NULL);
 
         l.debug("enqueued incoming message");
         digitalWrite(LED_BUILTIN, LOW);
