@@ -10,6 +10,10 @@ extern "C"
 
 #include "logging.h"
 
+#ifndef CREATURE_DEBUG
+    #error Please define CREATURE_DEBUG
+#endif
+
 namespace creatures
 {
 
@@ -32,6 +36,7 @@ namespace creatures
 
     void Logger::verbose(const char *message, ...)
     {
+#if CREATURE_DEBUG > 4
         // Copy the arguments to a new va_list
         va_list args;
         va_start(args, message);
@@ -40,10 +45,12 @@ namespace creatures
         va_end(args);
 
         xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+#endif
     }
 
     void Logger::debug(const char *message, ...)
     {
+#if CREATURE_DEBUG > 3
         // Copy the arguments to a new va_list
         va_list args;
         va_start(args, message);
@@ -52,10 +59,12 @@ namespace creatures
         va_end(args);
 
         xQueueSendToBack(logMessageQueue, &lm, (TickType_t)10);
+#endif
     }
 
     void Logger::info(const char *message, ...)
     {
+#if CREATURE_DEBUG > 2
         // Copy the arguments to a new va_list
         va_list args;
         va_start(args, message);
@@ -64,10 +73,12 @@ namespace creatures
         va_end(args);
 
         xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+#endif
     }
 
     void Logger::warning(const char *message, ...)
     {
+#if CREATURE_DEBUG > 1
         // Copy the arguments to a new va_list
         va_list args;
         va_start(args, message);
@@ -76,10 +87,12 @@ namespace creatures
         va_end(args);
 
         xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+#endif
     }
 
     void Logger::error(const char *message, ...)
     {
+#if CREATURE_DEBUG > 0
         // Copy the arguments to a new va_list
         va_list args;
         va_start(args, message);
@@ -88,6 +101,7 @@ namespace creatures
         va_end(args);
 
         xQueueSend(logMessageQueue, &lm, (TickType_t)10);
+#endif
     }
 
     void Logger::fatal(const char *message, ...)

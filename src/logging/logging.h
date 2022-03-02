@@ -10,18 +10,18 @@ extern "C"
 #include "freertos/queue.h"
 }
 
-#define LOG_LEVEL_VERBOSE 1
-#define LOG_LEVEL_DEBUG 2
+#define LOG_LEVEL_VERBOSE 5
+#define LOG_LEVEL_DEBUG 4
 #define LOG_LEVEL_INFO 3
-#define LOG_LEVEL_WARNING 4
-#define LOG_LEVEL_ERROR 5
-#define LOG_LEVEL_FATAL 6
+#define LOG_LEVEL_WARNING 2
+#define LOG_LEVEL_ERROR 1
+#define LOG_LEVEL_FATAL 0
 
 #define LOGGING_QUEUE_LENGTH 16
 
-#define LOGGING_MESSAGE_MAX_LENGTH 1024
+#define LOGGING_MESSAGE_MAX_LENGTH 512
 
-#define MONITOR_BAUD_RATE 19200
+#define MONITOR_BAUD_RATE 115200
 
 namespace creatures
 {

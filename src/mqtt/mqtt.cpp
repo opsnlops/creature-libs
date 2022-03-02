@@ -155,7 +155,7 @@ namespace creatures
 
         xTaskCreate(creatureHeartBeatTask,
                     "creatureHeartBeatTask",
-                    4096,
+                    5120,
                     NULL,
                     1,
                     &creatureHeartBeatTaskHandler);
