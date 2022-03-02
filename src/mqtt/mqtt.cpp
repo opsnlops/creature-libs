@@ -29,10 +29,10 @@ namespace creatures
     {
         ourName.toLowerCase();
         mqtt_base_name = ourName;
-        ESP_LOGV(TAG, "Set mqtt_base_name to %s", mqtt_base_name);
+        l.verbose("Set mqtt_base_name to %s", mqtt_base_name);
 
         mqtt_base_topic = String("creatures/") + mqtt_base_name;
-        ESP_LOGV(TAG, "Set mqtt_base_topic to %s", mqtt_base_topic.c_str());
+        l.verbose("Set mqtt_base_topic to %s", mqtt_base_topic.c_str());
     }
 
     void MQTT::connect(IPAddress _mqtt_broker_address, uint16_t _mqtt_broker_port)
@@ -103,7 +103,7 @@ namespace creatures
     void MQTT::onConnect(bool sessionPresent)
     {
         l.info("Connected to MQTT.");
-        ESP_LOGV(TAG, "Session present: %b", sessionPresent);
+        l.verbose("Session present: %b", sessionPresent);
     }
 
     void MQTT::onDisconnect(AsyncMqttClientDisconnectReason reason)
@@ -131,19 +131,19 @@ namespace creatures
     void MQTT::onSubscribe(uint16_t packetId, uint8_t qos)
     {
         l.debug("Subscribe acknowledged.");
-        ESP_LOGV(TAG, "  packetId: %d, qos: %d", packetId, qos);
+        l.verbose("  packetId: %d, qos: %d", packetId, qos);
     }
 
     void MQTT::onUnsubscribe(uint16_t packetId)
     {
         l.info("Unsubscribe acknowledged.");
-        ESP_LOGV(TAG, "  packetId: %d", packetId);
+        l.verbose("  packetId: %d", packetId);
     }
 
     void MQTT::onPublish(uint16_t packetId)
     {
         l.info("Publish acknowledged.");
-        ESP_LOGV(TAG, " packetId: %d", packetId);
+        l.verbose(" packetId: %d", packetId);
     }
 
     void MQTT::onWifiDisconnect()

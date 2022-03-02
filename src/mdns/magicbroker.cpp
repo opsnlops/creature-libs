@@ -8,7 +8,6 @@
 #include "magicbroker.h"
 #include "logging/logging.h"
 
-
 namespace creatures
 {
     static Logger l;
@@ -45,7 +44,7 @@ namespace creatures
 
     boolean MagicBroker::find()
     {
-        ESP_LOGV(TAG, "enter MagicBroker::find()");
+        l.verbose("enter MagicBroker::find()");
         valid = false;
 
         l.info("looking for the magic broker");
@@ -89,7 +88,7 @@ namespace creatures
             l.warning("unable to find the magic broker (role '%s')", BROKER_ROLE.c_str());
         }
 
-        ESP_LOGV(TAG, "leave MagicBroker::find()");
+        l.verbose("leave MagicBroker::find()");
         return valid;
     }
 

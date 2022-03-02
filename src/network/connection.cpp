@@ -35,7 +35,7 @@ namespace creatures
 
     void NetworkConnection::wifi_init()
     {
-        ESP_LOGV(TAG, "enter NetworkConnection::wifi_init()");
+        l.verbose("enter NetworkConnection::wifi_init()");
         WiFi.mode(WIFI_STA);
         WiFi.onEvent(onWifiReady, ARDUINO_EVENT_WIFI_READY);
         WiFi.onEvent(onStart, ARDUINO_EVENT_WIFI_STA_START);
@@ -44,7 +44,7 @@ namespace creatures
         WiFi.onEvent(onDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
         wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToWiFi));
 
-        ESP_LOGV(TAG, "leave NetworkConnection::wifi_init()");
+        l.verbose("leave NetworkConnection::wifi_init()");
     }
 
     void NetworkConnection::connectToWiFi()
