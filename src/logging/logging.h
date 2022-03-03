@@ -23,6 +23,14 @@ extern "C"
 
 #define MONITOR_BAUD_RATE 115200
 
+#ifdef CREATURE_LOG_SYSLOG
+
+// Most likely this should come from mDNS at some point?
+#define SYSLOG_SERVER "10.9.1.5"
+#define SYSLOG_PORT 514
+
+#endif
+
 namespace creatures
 {
 
@@ -53,8 +61,9 @@ namespace creatures
         // Public so the task can get access to it
         static QueueHandle_t logMessageQueue;
 
-    protected:
+    private:
         static LogMessage createMessageObject(u_int8_t level, const char *message, va_list args);
+        static String creatureName;
     };
 
     void start_log_reader();

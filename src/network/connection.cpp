@@ -19,6 +19,9 @@ extern "C"
 #include "secrets.h"
 #include "logging/logging.h"
 
+// Report the state of the WiFi to a global var
+extern boolean gWifiConnected;
+
 namespace creatures
 {
 
@@ -103,6 +106,8 @@ namespace creatures
 
     void NetworkConnection::onConnected(WiFiEvent_t event, WiFiEventInfo_t info)
     {
+        // Flag that we're online
+        gWifiConnected = true;
         l.info("WiFi connected");
     }
 
@@ -113,6 +118,9 @@ namespace creatures
 
     void NetworkConnection::onDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
     {
+        // Flag that we're now offline
+        gWifiConnected = false;
+
         l.error("WiFi lost connection");
         xTimerStart(wifiReconnectTimer, 0);
     }
