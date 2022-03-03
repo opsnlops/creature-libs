@@ -1,9 +1,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-
 #include <AsyncMqttClient.h>
-#include <WiFi.h>
 
 #include "mqtt.h"
 
@@ -29,7 +27,7 @@ namespace creatures
         mqtt_base_name = ourName;
         l.verbose("set mqtt_base_name to %s", mqtt_base_name);
 
-        mqtt_base_topic = String("creatures/") + mqtt_base_name;
+        mqtt_base_topic = String("creatures/") + mqtt_base_name + "/";
         l.verbose("set mqtt_base_topic to %s", mqtt_base_topic.c_str());
 
         incomingMessageQueue = xQueueCreate(MQTT_QUEUE_LENGTH, sizeof(MqttMessage));
@@ -110,7 +108,7 @@ namespace creatures
      */
     void MQTT::subscribe(String topic, uint8_t qos)
     {
-        String fullTopic = mqtt_base_topic + String("/") + topic;
+        String fullTopic = mqtt_base_topic + topic;
         l.info("Mapping %s to %s", topic, fullTopic.c_str());
 
         subscribeGlobalNamespace(fullTopic, qos);
@@ -152,19 +150,31 @@ namespace creatures
                          size_t length = 0, bool dup = false, uint16_t message_id = 0);
         */
 
-       l.verbose("publish: topic: %s, message: %s", topic, message);
+        l.verbose("publish: topic: %s, message: %s", topic, message);
 
-
-        String fullTopic = mqtt_base_topic + String("/") + topic;
+        String fullTopic = mqtt_base_topic + topic;
         l.debug("Mapping %s to %s", topic, fullTopic.c_str());
 
-        uint16_t returnCode = MQTT::publishRaw(fullTopic, message, qos, retain);
+        uint16_t returnCode = MQTT::publishGlobalNamespace(fullTopic, message, qos, retain);
         l.info("Published message to %s (%d)", fullTopic.c_str(), qos);
 
         return returnCode;
     }
 
-    uint16_t MQTT::publishRaw(String topic, String message, uint8_t qos, boolean retain)
+    /**
+     * @brief Publish a message with the topic on the global MQTT namespace
+     *
+     * Normally we'd rather limit requests to just this creature's namespace, but sometimes
+     * there's a need to publish something anywhere. (Things like the heartbeat message, for
+     * example.)
+     *
+     * @param topic The topic on the MQTT global namespace to use
+     * @param message The message to send
+     * @param qos QOS of message
+     * @param retain true to have the message retained by the broker
+     * @return uint16_t
+     */
+    uint16_t MQTT::publishGlobalNamespace(String topic, String message, uint8_t qos, boolean retain)
     {
 
         uint16_t returnCode = mqttClient.publish(topic.c_str(), qos, retain, message.c_str(), message.length());
@@ -182,15 +192,13 @@ namespace creatures
     void MQTT::onDisconnect(AsyncMqttClientDisconnectReason reason)
     {
         l.info("Disconnected from MQTT.");
-
-        // if (WiFi.isConnected())
-        //{
-        //     xTimerStart(mqttReconnectTimer, 0);
-        // }
     }
 
     /**
-     * @brief Tosses a message from MQTT into the message queue
+     * @brief Called by the MQTT client when a message is received
+     *
+     * This method will look at the message that came in and then publish it on the
+     * queue for the application to consume.
      *
      * @param topic
      * @param payload
@@ -208,27 +216,57 @@ namespace creatures
         l.debug("MQTT message received: topic: %s", topic);
         l.verbose("Incoming message: %s", payload);
 
+        // Topic isn't going to be binary, so let's use that to our advantage
+        String localTopicAsSting = String(topic);
+
         // Create some buffers and make sure we've got \0 on the end
-        char topicBuffer[MQTT_MAX_TOPIC_LENGTH + 1];
-        memset(topicBuffer, '\0', MQTT_MAX_TOPIC_LENGTH + 1);
+        char localTopicBuffer[MQTT_MAX_TOPIC_LENGTH + 1];
+        memset(localTopicBuffer, '\0', MQTT_MAX_TOPIC_LENGTH + 1);
+
+        char globalTopicBuffer[MQTT_MAX_TOPIC_LENGTH + 1];
+        memset(globalTopicBuffer, '\0', MQTT_MAX_TOPIC_LENGTH + 1);
 
         char payloadBuffer[MQTT_MAX_PAYLOAD_LENGTH + 1];
         memset(payloadBuffer, '\0', MQTT_MAX_PAYLOAD_LENGTH + 1);
 
-        // Make sure we're not going to over-run a buffer
-        int topicLength = strlen(topic);
-        if (topicLength > MQTT_MAX_TOPIC_LENGTH)
+        // If this topic is localized to this creature, chew off the creature's namespace from
+        // the topic. This allows the creature to get the message on the same "topic" it subscribed
+        // to. (Or so it thinks.) 😎
+
+        if (localTopicAsSting.startsWith(mqtt_base_topic))
         {
-            l.info("topic is %d length, truncating to %d", topicLength, MQTT_MAX_TOPIC_LENGTH);
-            topicLength = MQTT_MAX_TOPIC_LENGTH;
+            // The topic starts with the base, so let's remove it
+            l.debug("topic starts with the base topic (%s), so I'm removing it", mqtt_base_topic.c_str());
+            localTopicAsSting.replace(mqtt_base_topic, "");
+            l.debug("local topic is now: %s", localTopicAsSting);
+        }
+        const char *localTopic = localTopicAsSting.c_str();
+
+        // Make sure we're not going to over-run a buffer
+        int globalTopicLength = strlen(topic);
+        if (globalTopicLength > MQTT_MAX_TOPIC_LENGTH)
+        {
+            l.info("global topic is %d length, truncating to %d", globalTopicLength, MQTT_MAX_TOPIC_LENGTH);
+            globalTopicLength = MQTT_MAX_TOPIC_LENGTH;
         }
         else
         {
-            l.debug("topic length: %d", topicLength);
+            l.debug("global topic length: %d", globalTopicLength);
+        }
+
+        int localTopicLength = strlen(localTopic);
+        if (localTopicLength > MQTT_MAX_TOPIC_LENGTH)
+        {
+            l.info("local topic is %d length, truncating to %d", localTopicLength, MQTT_MAX_TOPIC_LENGTH);
+            localTopicLength = MQTT_MAX_TOPIC_LENGTH;
+        }
+        else
+        {
+            l.debug("local topic length: %d", localTopicLength);
         }
 
         int payloadLength = len;
-        if(payloadLength > MQTT_MAX_PAYLOAD_LENGTH)
+        if (payloadLength > MQTT_MAX_PAYLOAD_LENGTH)
         {
             l.info("payload is %d length, truncating to %d", payloadLength, MQTT_MAX_PAYLOAD_LENGTH);
             payloadLength = MQTT_MAX_PAYLOAD_LENGTH;
@@ -238,9 +276,17 @@ namespace creatures
             l.debug("payload length: %d", payloadLength);
         }
 
+        // Make sure we're properly NUL padded by copying the incoming strings into
+        // the buffers
+        memcpy(globalTopicBuffer, topic, payloadLength);
+        memcpy(localTopicBuffer, localTopic, localTopicLength);
+        memcpy(payloadBuffer, payload, payloadLength);
+
+        // Now load up the object for the queue
         struct MqttMessage message;
-        memcpy(message.topic, topic, topicLength + 1);
-        memcpy(message.payload, payload, payloadLength + 1);
+        memcpy(message.topicGlobalNamespace, globalTopicBuffer, globalTopicLength + 1);
+        memcpy(message.topic, localTopicBuffer, localTopicLength + 1);
+        memcpy(message.payload, payloadBuffer, payloadLength + 1);
 
         // Bye message! have fun in the queue!
         xQueueSendToBackFromISR(incomingMessageQueue, &message, NULL);
@@ -265,10 +311,6 @@ namespace creatures
     {
         l.info("Publish acknowledged.");
         l.verbose(" packetId: %d", packetId);
-    }
-
-    void MQTT::onWifiDisconnect()
-    {
     }
 
     void MQTT::startHeartbeat()
@@ -303,7 +345,7 @@ namespace creatures
             String json;
             serializeJson(message, json);
 
-            MQTT::publishRaw(HEARTBEAT_TOPIC, json, 0, false);
+            MQTT::publishGlobalNamespace(HEARTBEAT_TOPIC, json, 0, false);
 
             vTaskDelay(pdMS_TO_TICKS(15000));
         }

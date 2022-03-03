@@ -29,11 +29,11 @@ namespace creatures
      *
      * This is a bunch of fixed-length arrays so they can go into a queue
      * without a lot of headaches
-     *
      */
     struct MqttMessage
     {
         char topic[MQTT_MAX_TOPIC_LENGTH + 1];
+        char topicGlobalNamespace[MQTT_MAX_TOPIC_LENGTH + 1];
         char payload[MQTT_MAX_PAYLOAD_LENGTH + 1];
     } __attribute__((packed));
 
@@ -45,6 +45,7 @@ namespace creatures
         static void subscribe(String topic, uint8_t qos);
         static void subscribeGlobalNamespace(String topic, uint8_t qos);
         static uint16_t publish(String topic, String message, uint8_t qos, boolean retain);
+        static uint16_t publishGlobalNamespace(String topic, String message, uint8_t qos, boolean retain);
         static void connect(IPAddress mqtt_broker_address, uint16_t mqtt_broker_port);
 
         static void startHeartbeat();
@@ -58,9 +59,6 @@ namespace creatures
         static void onUnsubscribe(uint16_t packetId);
 
         static void onPublish(uint16_t packetId);
-        static void onWifiDisconnect();
-
-        static uint16_t publishRaw(String topic, String message, uint8_t qos, boolean retain);
 
         static void onMessage(char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
 
