@@ -152,6 +152,9 @@ namespace creatures
                          size_t length = 0, bool dup = false, uint16_t message_id = 0);
         */
 
+       l.verbose("publish: topic: %s, message: %s", topic, message);
+
+
         String fullTopic = mqtt_base_topic + String("/") + topic;
         l.debug("Mapping %s to %s", topic, fullTopic.c_str());
 
@@ -203,6 +206,7 @@ namespace creatures
 
         l.info("in onMessage()");
         l.debug("MQTT message received: topic: %s", topic);
+        l.verbose("Incoming message: %s", payload);
 
         // Create some buffers and make sure we've got \0 on the end
         char topicBuffer[MQTT_MAX_TOPIC_LENGTH + 1];
