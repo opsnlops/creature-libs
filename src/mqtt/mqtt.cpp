@@ -278,7 +278,7 @@ namespace creatures
 
         // Make sure we're properly NUL padded by copying the incoming strings into
         // the buffers
-        memcpy(globalTopicBuffer, topic, payloadLength);
+        memcpy(globalTopicBuffer, topic, globalTopicLength);
         memcpy(localTopicBuffer, localTopic, localTopicLength);
         memcpy(payloadBuffer, payload, payloadLength);
 
