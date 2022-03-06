@@ -126,8 +126,10 @@ namespace creatures
                 // Format our message
                 snprintf(buffer, LOGGING_MESSAGE_MAX_LENGTH + 16, "[%d]%s %s", millis(), levelBuffer, lm.message);
 
+#ifdef CREATURE_LOG_SERIAL
                 // Print to the serial port
                 Serial.println(buffer);
+#endif
 
 #ifdef CREATURE_LOG_SYSLOG
                 // Log to syslog

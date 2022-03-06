@@ -14,6 +14,13 @@ extern "C"
 #error Please define CREATURE_DEBUG
 #endif
 
+// Warn if there's no logger at all
+#ifndef CREATURE_LOG_SERIAL
+#ifndef CREATURE_LOG_SYSLOG
+#warning Neither CREATURE_LOG_SERIAL or CREATURE_LOG_SYSLOG are defined, so logging will be totally disabled.
+#endif
+#endif
+
 namespace creatures
 {
 
@@ -23,11 +30,11 @@ namespace creatures
 
     void Logger::init()
     {
-
+#ifdef CREATURE_LOG_SERIAL
         Serial.begin(MONITOR_BAUD_RATE);
         while (!Serial && !Serial.available())
             ;
-
+#endif
         logMessageQueue = xQueueCreate(LOGGING_QUEUE_LENGTH, sizeof(LogMessage));
         queueMade = true;
         start_log_reader();
