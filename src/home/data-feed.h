@@ -2,7 +2,7 @@
 
 /**
  * @brief Topics for the home data feed
- * 
+ *
  * I've got a complex home data feed available in MQTT. This
  * file defines the MQTT paths for devices to use.
  */
@@ -29,3 +29,6 @@
 // Fireplaces
 #define FAMILY_ROOM_FLAMETHROWER_TOPIC "home/family_room/flamethrower"
 #define OFFICE_FLAMETHROWER_TOPIC "home/office/flamethrower"
+
+// Power Use
+#define HOME_POWER_USE_WATTS "home/power/watts"
