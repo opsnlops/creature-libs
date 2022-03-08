@@ -25,8 +25,6 @@ extern boolean gWifiConnected;
 namespace creatures
 {
 
-    static const char *TAG = "network";
-
     static Logger l;
     WiFiClass NetworkConnection::WiFi;
     TimerHandle_t NetworkConnection::wifiReconnectTimer;
@@ -39,13 +37,13 @@ namespace creatures
     void NetworkConnection::wifi_init()
     {
         l.verbose("enter NetworkConnection::wifi_init()");
-        WiFi.mode(WIFI_STA);
+        WiFi.mode(WIFI_MODE_STA);
         WiFi.onEvent(onWifiReady, ARDUINO_EVENT_WIFI_READY);
         WiFi.onEvent(onStart, ARDUINO_EVENT_WIFI_STA_START);
         WiFi.onEvent(onConnected, ARDUINO_EVENT_WIFI_STA_CONNECTED);
         WiFi.onEvent(onGotIP, ARDUINO_EVENT_WIFI_STA_GOT_IP);
         WiFi.onEvent(onDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-        wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(2000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToWiFi));
+        wifiReconnectTimer = xTimerCreate("wifiTimer", pdMS_TO_TICKS(30000), pdFALSE, (void *)0, reinterpret_cast<TimerCallbackFunction_t>(connectToWiFi));
 
         l.verbose("leave NetworkConnection::wifi_init()");
     }
@@ -53,14 +51,42 @@ namespace creatures
     void NetworkConnection::connectToWiFi()
     {
         l.info("Connecting to WiFi network: %s", WIFI_NETWORK);
-
+        l.debug("My MAC address: %s", WiFi.macAddress().c_str());
         int attempt = 0;
 
         WiFi.begin(WIFI_NETWORK, WIFI_PASSWORD);
-        while (WiFi.status() != WL_CONNECTED)
+        while (!WiFi.isConnected())
         {
-            vTaskDelay(pdMS_TO_TICKS(500));
-            l.debug(" (not yet - %d)", attempt);
+            l.debug(" not yet! attempt: %d", attempt);
+            switch (WiFi.status())
+            {
+            case (WL_IDLE_STATUS):
+                l.debug("  reason: idle");
+                break;
+            case (WL_NO_SSID_AVAIL):
+                l.debug("  reason: no SSID available");
+                break;
+            case (WL_SCAN_COMPLETED):
+                l.debug("  reason: Scan Completed");
+                break;
+            case (WL_CONNECTED):
+                l.debug("  reason: connected (what?)");
+                break;
+            case (WL_CONNECT_FAILED):
+                l.debug("  reason: connect failed");
+                break;
+            case (WL_CONNECTION_LOST):
+                l.debug("  reason: connection lost");
+                break;
+            case (WL_DISCONNECTED):
+                l.debug("  reason: disconnected");
+                break;
+            default:
+                l.debug(" reason: unknown (%d)", WiFi.status());
+                break;
+            }
+
+            vTaskDelay(pdMS_TO_TICKS(2000));
 
             // Only wait so long
             if (attempt++ == 50)
@@ -120,9 +146,8 @@ namespace creatures
     {
         // Flag that we're now offline
         gWifiConnected = false;
-
-        l.error("WiFi lost connection");
-        xTimerStart(wifiReconnectTimer, 0);
+        l.error("WiFi lost connection! Reason: %d", info.wifi_sta_disconnected.reason);
+        // xTimerStart(wifiReconnectTimer, 0);
     }
 
     /**
