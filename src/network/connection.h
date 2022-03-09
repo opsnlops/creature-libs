@@ -3,8 +3,15 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <Preferences.h>
 
-#include "esp_log.h"
+extern "C"
+{
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
+}
+
+#define WIFI_CONFIG_STORAGE_SPACE "creature-wifi"
 
 namespace creatures
 {
@@ -19,7 +26,7 @@ namespace creatures
 
         static TimerHandle_t wifiReconnectTimer;
 
-        static void connectToWiFi();
+        static boolean connectToWiFi();
         static void signal_conenction_error();
 
         void wifi_init();
@@ -35,6 +42,13 @@ namespace creatures
         static void onConnected(WiFiEvent_t event, WiFiEventInfo_t info);
         static void onGotIP(WiFiEvent_t event, WiFiEventInfo_t info);
         static void onDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
+
+        //
+        // Configuration
+        //
+
+        static String getNetworkName();
+        static String getWifiPassword();
     };
 
 }

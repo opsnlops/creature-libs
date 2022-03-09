@@ -13,10 +13,7 @@ extern "C"
 #include "freertos/timers.h"
 }
 
-#include "esp_log.h"
-
 #include "connection.h"
-#include "secrets.h"
 #include "logging/logging.h"
 
 // Report the state of the WiFi to a global var
@@ -28,6 +25,9 @@ namespace creatures
     static Logger l;
     WiFiClass NetworkConnection::WiFi;
     TimerHandle_t NetworkConnection::wifiReconnectTimer;
+
+    static String wifiNetwork;
+    static String wifiPassword;
 
     NetworkConnection::NetworkConnection()
     {
@@ -48,13 +48,24 @@ namespace creatures
         l.verbose("leave NetworkConnection::wifi_init()");
     }
 
-    void NetworkConnection::connectToWiFi()
+    boolean NetworkConnection::connectToWiFi()
     {
-        l.info("Connecting to WiFi network: %s", WIFI_NETWORK);
+        l.debug("fetching the WiFi settings from the config");
+        wifiNetwork = getNetworkName();
+        wifiPassword = getWifiPassword();
+
+        // If we're not configured, yell
+        if(wifiNetwork.length() == 0 || wifiPassword.length() == 0)
+        {
+            l.error("No WiFi config found! Please provision this device <3");
+            return false;
+        }
+
+        l.info("Connecting to WiFi network: %s", wifiNetwork.c_str());
         l.debug("My MAC address: %s", WiFi.macAddress().c_str());
         int attempt = 0;
 
-        WiFi.begin(WIFI_NETWORK, WIFI_PASSWORD);
+        WiFi.begin(wifiNetwork.c_str(), wifiPassword.c_str());
         while (!WiFi.isConnected())
         {
             l.debug(" not yet! attempt: %d", attempt);
@@ -95,6 +106,7 @@ namespace creatures
             }
         }
         l.info("connected to wifi");
+        return true;
     }
 
     /**
@@ -103,12 +115,12 @@ namespace creatures
      */
     void NetworkConnection::disconnectFromWiFi()
     {
-        l.debug("Disconnecting from Wifi network %s", WIFI_NETWORK);
+        l.debug("Disconnecting from Wifi network %s", wifiNetwork.c_str());
 
         if (NetworkConnection::isConnected())
         {
             WiFi.disconnect();
-            l.info("Disconnected from Wifi network %s", WIFI_NETWORK);
+            l.info("Disconnected from Wifi network %s", wifiNetwork.c_str());
         }
     }
 
