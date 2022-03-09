@@ -10,7 +10,7 @@
 #define HALLWAY_BATHROOM_MOTION_TOPIC "home/hallway_bathroom/motion"
 #define BEDROOM_MOTION_TOPIC "home/bedroom/motion"
 #define OFFICE_MOTION_TOPIC "home/office/motion"
-#define LIVING_ROOM_MOTION_TOPIC "home/living_room/motion"
+#define LIVING_ROOM_MOTION_TOPIC "home/family_room/motion"
 #define WORKSHOP_MOTION_TOPIC "home/workshop/motion"
 
 #define BUNNYS_ROOM_TEMPERATURE_TOPIC "home/bunnys_room/temperature"
@@ -24,7 +24,7 @@
 
 // Outside stuff
 #define OUTSIDE_TEMPERATURE_TOPIC "home/outside/temperature"
-#define OUTSIDE_WIND_SPEED_TOPIC "home/outside/wind_speed"
+#define OUTSIDE_WIND_SPEED_TOPIC "home/outside/wind_average"
 
 // Fireplaces
 #define FAMILY_ROOM_FLAMETHROWER_TOPIC "home/family_room/flamethrower"
