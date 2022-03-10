@@ -50,6 +50,7 @@ namespace creatures
 
     boolean NetworkConnection::connectToWiFi()
     {
+
         l.debug("fetching the WiFi settings from the config");
         wifiNetwork = getNetworkName();
         wifiPassword = getWifiPassword();

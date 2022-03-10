@@ -6,7 +6,12 @@
 #endif
 
 #include <Arduino.h>
+
+#ifdef LOAD_WIFI_CONFIG_FROM_NVS
 #include <Preferences.h>
+#else
+#include "secrets.h"
+#endif
 
 #include "connection.h"
 #include "logging/logging.h"
@@ -15,7 +20,9 @@ namespace creatures
 {
 
     static Logger l;
+#ifdef LOAD_WIFI_CONFIG_FROM_NVS
     static Preferences prefs;
+#endif
 
     /**
      * @brief Gets the name of the WiFi network from NVS
@@ -26,6 +33,7 @@ namespace creatures
      */
     String NetworkConnection::getNetworkName()
     {
+#ifdef LOAD_WIFI_CONFIG_FROM_NVS
         l.debug("fetching the WiFi network name from NVS");
         prefs.begin(WIFI_CONFIG_STORAGE_SPACE, true);
 
@@ -33,6 +41,10 @@ namespace creatures
         l.debug("found WiFi network name: %s", networkName.c_str());
 
         prefs.end();
+#else
+    String networkName = String(WIFI_NETWORK);
+    l.debug("configured networkName from secrets.h");
+#endif
 
         return networkName;
     }
@@ -44,6 +56,7 @@ namespace creatures
      */
     String NetworkConnection::getWifiPassword()
     {
+#ifdef LOAD_WIFI_CONFIG_FROM_NVS
         l.debug("fetching the WiFi password name from NVS");
         prefs.begin(WIFI_CONFIG_STORAGE_SPACE, true);
 
@@ -51,6 +64,10 @@ namespace creatures
         l.debug("found a WiFi password that's %d characters long", networkPassword.length());
 
         prefs.end();
+#else
+        String networkPassword = String(WIFI_PASSWORD);
+        l.debug("configured networkPassword from secrets.h");
+#endif
 
         return networkPassword;
     }

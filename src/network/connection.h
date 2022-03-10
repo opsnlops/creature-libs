@@ -3,7 +3,10 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+
+#ifdef LOAD_WIFI_CONFIG_FROM_NVS
 #include <Preferences.h>
+#endif
 
 extern "C"
 {
