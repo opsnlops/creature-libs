@@ -338,6 +338,8 @@ namespace creatures
             StaticJsonDocument<130> message;
             message["name"] = mqtt_base_name;
             message["time"] = Time::getCurrentTime();
+            message["free_heap"] = ESP.getFreeHeap();
+            message["free_psram"] = ESP.getFreePsram();
 
             // Show the uptime in seconds
             message["uptime"] = esp_timer_get_time() / 1000000;

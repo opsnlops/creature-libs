@@ -43,6 +43,9 @@ namespace creatures
         addServiceText("name", creatureName);
         addServiceText("arduino", String(ARDUINO));
         addServiceText("power", powerType);
+        addServiceText("chip_model", String(ESP.getChipModel()));
+        addServiceText("chip_revision", String(ESP.getChipRevision()));
+        addServiceText("flash_size", String(ESP.getFlashChipSize()));
     }
 
     void CreatureMDNS::addServiceText(String key, String value)
