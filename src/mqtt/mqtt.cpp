@@ -335,11 +335,13 @@ namespace creatures
         {
             l.debug("publishing heartbeat");
 
-            StaticJsonDocument<130> message;
+            StaticJsonDocument<256> message;
             message["name"] = mqtt_base_name;
             message["time"] = Time::getCurrentTime();
             message["free_heap"] = ESP.getFreeHeap();
             message["free_psram"] = ESP.getFreePsram();
+            message["max_alloc_heap"] = ESP.getMaxAllocHeap();
+            message["max_alloc_psram"] = ESP.getMaxAllocPsram();
 
             // Show the uptime in seconds
             message["uptime"] = esp_timer_get_time() / 1000000;

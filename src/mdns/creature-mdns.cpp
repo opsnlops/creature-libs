@@ -46,6 +46,13 @@ namespace creatures
         addServiceText("chip_model", String(ESP.getChipModel()));
         addServiceText("chip_revision", String(ESP.getChipRevision()));
         addServiceText("flash_size", String(ESP.getFlashChipSize()));
+        addServiceText("psram_size", String(ESP.getPsramSize()));
+        addServiceText("cpu_cores", String(ESP.getChipCores()));
+        addServiceText("cpu_freq", String(ESP.getCpuFreqMHz()));
+        addServiceText("sketch_size", String(ESP.getSketchSize()));
+        addServiceText("sdk_version", String(ESP.getSdkVersion()));
+        addServiceText("sketch_md5", String(ESP.getSketchMD5()));
+        addServiceText("free_sketch_space", String(ESP.getFreeSketchSpace()));
     }
 
     void CreatureMDNS::addServiceText(String key, String value)
