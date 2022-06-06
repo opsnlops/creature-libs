@@ -8,7 +8,7 @@
  *
  */
 
-#define SMOOTHING_BUCKET_SIZE 32
+#define SMOOTHING_BUCKET_SIZE 22
 
 
 namespace creatures
