@@ -3,12 +3,8 @@
 #include <Arduino.h>
 #include <ESPmDNS.h>
 
-#include "esp_log.h"
-
 #include "creature-mdns.h"
 #include "logging/logging.h"
-
-static const char *TAG = "mdns";
 
 namespace creatures
 {

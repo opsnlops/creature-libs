@@ -8,8 +8,6 @@
 #include <WiFi.h>
 #include <ESPmDNS.h>
 
-#include "esp_log.h"
-
 #define MAGIC_BROKER_ROLE "magic"
 
 namespace creatures

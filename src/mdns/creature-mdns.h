@@ -3,14 +3,13 @@
 
 /*
 
- This is called creature-mdns to avoid a name conflict with the system MDNS
+    This is called creature-mdns to avoid a name conflict with the system MDNS
 
 */
 
 #include <Arduino.h>
 #include <ESPmDNS.h>
 
-#include "esp_log.h"
 #include "logging/logging.h"
 
 namespace creatures

@@ -1,10 +1,4 @@
 
-#if !defined(ESP32)
-#error This code is intended to run only on the ESP32 board
-#endif
-
-#include "esp_log.h"
-
 #include "magicbroker.h"
 #include "logging/logging.h"
 
